@@ -3,7 +3,6 @@ package master
 import (
 	"encoding/json"
 	"io/ioutil"
-	"sync"
 )
 
 type Config struct {
@@ -16,16 +15,10 @@ type Config struct {
 }
 
 var (
-	cLock    sync.Mutex
 	G_config *Config
 )
 
 func InitConfig(filename string) (err error) {
-	cLock.Lock()
-	defer cLock.Unlock()
-	if G_config != nil {
-		return
-	}
 	var (
 		content []byte
 		config  Config
