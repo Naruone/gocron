@@ -14,6 +14,11 @@ type Response struct {
     Data  interface{} `json:"data"`
 }
 
+type JobEvent struct {
+    EventType int
+    Job       *Job
+}
+
 func BuildResponse(code int, msg string, data interface{}) (resp []byte, err error) {
     var response Response
 

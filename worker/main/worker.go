@@ -5,6 +5,7 @@ import (
     "gocron/worker"
     "log"
     "runtime"
+    "time"
 )
 
 func initEnv() {
@@ -35,5 +36,9 @@ func main() {
 
     if err = worker.InitJobMgr(); err != nil {
         log.Fatal("初始Etcd错误", err)
+    }
+
+    for {
+        time.Sleep(1 * time.Second)
     }
 }
