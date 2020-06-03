@@ -9,7 +9,7 @@ require (
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/google/uuid v1.1.1 // indirect
-	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 // indirect
+	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/howeyc/fsnotify v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/pilu/config v0.0.0-20131214182432-3eb99e6c0b9a // indirect

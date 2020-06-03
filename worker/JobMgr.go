@@ -2,7 +2,6 @@ package worker
 
 import (
     "context"
-    "fmt"
     "github.com/coreos/etcd/mvcc/mvccpb"
     "go.etcd.io/etcd/clientv3"
     "gocron/common"
@@ -74,6 +73,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
                 EventType: common.JOB_EVENT_SAVE,
                 Job:       job,
             }
+            G_scheduler.PushEvent(jobEvent)
         }
     }
 
@@ -100,7 +100,7 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
                         },
                     }
                 }
-                fmt.Println(jobEvent)
+                G_scheduler.PushEvent(jobEvent)
             }
         }
     }()
