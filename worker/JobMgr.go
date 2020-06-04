@@ -104,6 +104,9 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
             }
         }
     }()
-
     return
+}
+
+func (jobMgr *JobMgr) CreateJobLock(jobName string) *JobLock {
+    return InitJobLock(jobName, jobMgr.kv, jobMgr.lease)
 }

@@ -104,7 +104,7 @@ func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
 
 func (scheduler *Scheduler) jobResultHandle(result *common.JobExecuteResult) {
     delete(scheduler.jobExecutingTable, result.ExecuteInfo.Job.Name)
-    fmt.Println(result)
+    fmt.Println("任务日志", result.ExecuteInfo.Job.Name, string(result.Output), result.Err)
     //todo 记录执行日志
 }
 

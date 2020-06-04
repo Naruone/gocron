@@ -22,21 +22,30 @@ func InitExecutor() (err error) {
 func (executor *Executor) ExecuteJob(jobInfo *common.JobExecuteInfo) {
     go func() {
         var (
-            cmd    *exec.Cmd
-            output []byte
-            err    error
-            result *common.JobExecuteResult
+            cmd     *exec.Cmd
+            result  *common.JobExecuteResult
+            jobLock *JobLock
+            err     error
         )
+
         result = &common.JobExecuteResult{
             ExecuteInfo: jobInfo,
             Output:      make([]byte, 0),
-            StartTime:   time.Now(),
         }
-        cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", jobInfo.Job.Command)
-        output, err = cmd.CombinedOutput()
-        result.Output = output
-        result.Err = err
-        result.EndTime = time.Now()
+
+        jobLock = G_JobMgr.CreateJobLock(jobInfo.Job.Name)
+        err = jobLock.TryLock()
+        defer jobLock.UnLock()
+
+        if err == nil { //上锁成功
+            result.StartTime = time.Now()
+            cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", jobInfo.Job.Command)
+            result.Output, result.Err = cmd.CombinedOutput()
+            result.EndTime = time.Now()
+        } else { // 上锁失败
+            result.Err = err
+            result.EndTime = time.Now()
+        }
         G_scheduler.PushJobResult(result)
     }()
 }
