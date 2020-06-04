@@ -48,6 +48,7 @@ func InitJobMgr() (err error) {
     }
 
     G_JobMgr.watchJobs()
+    G_JobMgr.watchKiller()
     return
 }
 
@@ -96,11 +97,40 @@ func (jobMgr *JobMgr) watchJobs() (err error) {
                     jobEvent = &common.JobEvent{
                         EventType: common.JOB_EVENT_DELETE,
                         Job: &common.Job{
-                            Name: string(watchEvent.Kv.Key),
+                            Name: common.ExtractJobName(string(watchEvent.Kv.Key)),
                         },
                     }
                 }
                 G_scheduler.PushEvent(jobEvent)
+            }
+        }
+    }()
+    return
+}
+
+func (jobMgr *JobMgr) watchKiller() {
+    var (
+        watchChan  clientv3.WatchChan
+        watchResp  clientv3.WatchResponse
+        watchEvent *clientv3.Event
+        jobEvent   *common.JobEvent
+    )
+
+    go func() {
+        watchChan = jobMgr.watcher.Watch(context.TODO(), common.JOB_KILLER_DIR, clientv3.WithPrefix())
+        for watchResp = range watchChan {
+            for _, watchEvent = range watchResp.Events {
+                switch watchEvent.Type {
+                case mvccpb.PUT: //监听任务kill
+                    jobEvent = &common.JobEvent{
+                        EventType: common.JOB_EVENT_KILL,
+                        Job: &common.Job{
+                            Name: common.ExtractKillJobName(string(watchEvent.Kv.Key)),
+                        },
+                    }
+                    G_scheduler.PushEvent(jobEvent)
+                case mvccpb.DELETE: //kill 任务自动过期
+                }
             }
         }
     }()

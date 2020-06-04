@@ -1,7 +1,6 @@
 package worker
 
 import (
-    "context"
     "gocron/common"
     "os/exec"
     "time"
@@ -39,7 +38,7 @@ func (executor *Executor) ExecuteJob(jobInfo *common.JobExecuteInfo) {
 
         if err == nil { //上锁成功
             result.StartTime = time.Now()
-            cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", jobInfo.Job.Command)
+            cmd = exec.CommandContext(jobInfo.CancelCtx, "/bin/bash", "-c", jobInfo.Job.Command)
             result.Output, result.Err = cmd.CombinedOutput()
             result.EndTime = time.Now()
         } else { // 上锁失败

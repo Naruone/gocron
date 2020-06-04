@@ -15,4 +15,7 @@ const (
 
     // 删除任务事件
     JOB_EVENT_DELETE = 2
+
+    // 杀死任务事件
+    JOB_EVENT_KILL = 3
 )

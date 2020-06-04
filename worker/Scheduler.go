@@ -86,6 +86,7 @@ func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
 func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
     var (
         jobSchedulePlan *common.JobSchedulePlan
+        jobExecuteInfo  *common.JobExecuteInfo
         jobExisted      bool
         err             error
     )
@@ -98,6 +99,10 @@ func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
     case common.JOB_EVENT_DELETE:
         if jobSchedulePlan, jobExisted = scheduler.jobPlanTable[jobEvent.Job.Name]; jobExisted {
             delete(scheduler.jobPlanTable, jobEvent.Job.Name)
+        }
+    case common.JOB_EVENT_KILL:
+        if jobExecuteInfo, jobExisted = scheduler.jobExecutingTable[jobEvent.Job.Name]; jobExisted {
+            jobExecuteInfo.CancelFunc()
         }
     }
 }
