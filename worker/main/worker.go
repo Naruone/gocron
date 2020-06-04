@@ -34,12 +34,16 @@ func main() {
         log.Fatal("初始化配置错误", err)
     }
 
+    if err = worker.InitExecutor(); err != nil {
+        log.Fatal("初始化执行器错误", err)
+    }
+
     if err = worker.InitScheduler(); err != nil {
-        log.Fatal("初始调度器错误", err)
+        log.Fatal("初始化调度器错误", err)
     }
 
     if err = worker.InitJobMgr(); err != nil {
-        log.Fatal("初始Etcd错误", err)
+        log.Fatal("初始化Etcd错误", err)
     }
 
     for {

@@ -30,6 +30,22 @@ type JobSchedulePlan struct {
     NextTime time.Time
 }
 
+//任务执行状态
+type JobExecuteInfo struct {
+    Job      *Job
+    PlanTime time.Time
+    RealTime time.Time
+}
+
+// 任务执行结果
+type JobExecuteResult struct {
+    ExecuteInfo *JobExecuteInfo // 执行状态
+    Output      []byte          // 脚本输出
+    Err         error           // 脚本错误原因
+    StartTime   time.Time       // 启动时间
+    EndTime     time.Time       // 结束时间
+}
+
 func BuildResponse(code int, msg string, data interface{}) (resp []byte, err error) {
     var response Response
 
@@ -67,6 +83,15 @@ func BuildJobSchedulePlan(job *Job) (jobSchedulePlan *JobSchedulePlan, err error
         Job:      job,
         Expr:     expr,
         NextTime: expr.Next(time.Now()),
+    }
+    return
+}
+
+func BuildJobExecuteInfo(jobPlan *JobSchedulePlan) (jobExecuteInfo *JobExecuteInfo) {
+    jobExecuteInfo = &JobExecuteInfo{
+        Job:      jobPlan.Job,
+        PlanTime: jobPlan.NextTime,
+        RealTime: time.Now(),
     }
     return
 }

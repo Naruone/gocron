@@ -7,8 +7,11 @@ import (
 )
 
 type Scheduler struct {
-    jobPlanTable map[string]*common.JobSchedulePlan
-    jobEventChan chan *common.JobEvent
+    jobPlanTable      map[string]*common.JobSchedulePlan
+    jobEventChan      chan *common.JobEvent
+    jobExecutingTable map[string]*common.JobExecuteInfo
+    executor          *Executor
+    jobResultChan     chan *common.JobExecuteResult
 }
 
 var (
@@ -20,6 +23,7 @@ func (scheduler *Scheduler) scheduleLoop() {
         scheduleAfter time.Duration
         scheduleTimer *time.Timer
         jobEvent      *common.JobEvent
+        executeResult *common.JobExecuteResult
     )
     scheduleAfter = scheduler.TrySchedule()
     scheduleTimer = time.NewTimer(scheduleAfter)
@@ -29,6 +33,8 @@ func (scheduler *Scheduler) scheduleLoop() {
         case <-scheduleTimer.C:
         case jobEvent = <-scheduler.jobEventChan:
             scheduler.jobEventHandle(jobEvent)
+        case executeResult = <-scheduler.jobResultChan:
+            scheduler.jobResultHandle(executeResult)
         }
         scheduleAfter = scheduler.TrySchedule()
         scheduleTimer.Reset(scheduleAfter)
@@ -41,7 +47,6 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
         jobPlan  *common.JobSchedulePlan
         now      time.Time
         nearTime *time.Time
-        jobName  string
     )
 
     if len(scheduler.jobPlanTable) == 0 {
@@ -49,10 +54,10 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
         return
     }
     now = time.Now()
-    for jobName, jobPlan = range scheduler.jobPlanTable {
+    for _, jobPlan = range scheduler.jobPlanTable {
         if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
             // todo 执行任务
-            fmt.Println("执行了任务", jobName)
+            scheduler.TryStartJob(jobPlan)
             jobPlan.NextTime = jobPlan.Expr.Next(now)
         }
 
@@ -62,6 +67,20 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
         scheduleAfter = (*nearTime).Sub(now)
     }
     return
+}
+
+func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulePlan) {
+    var (
+        executeInfo *common.JobExecuteInfo
+        jobExisted  bool
+    )
+
+    if executeInfo, jobExisted = scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExisted {
+        return
+    }
+    executeInfo = common.BuildJobExecuteInfo(jobPlan)
+    scheduler.jobExecutingTable[jobPlan.Job.Name] = executeInfo
+    G_executor.ExecuteJob(executeInfo)
 }
 
 func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
@@ -83,14 +102,26 @@ func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
     }
 }
 
+func (scheduler *Scheduler) jobResultHandle(result *common.JobExecuteResult) {
+    delete(scheduler.jobExecutingTable, result.ExecuteInfo.Job.Name)
+    fmt.Println(result)
+    //todo 记录执行日志
+}
+
 func (scheduler *Scheduler) PushEvent(jobEvent *common.JobEvent) {
     scheduler.jobEventChan <- jobEvent
 }
 
+func (scheduler *Scheduler) PushJobResult(jobResult *common.JobExecuteResult) {
+    scheduler.jobResultChan <- jobResult
+}
+
 func InitScheduler() (err error) {
     G_scheduler = &Scheduler{
-        jobPlanTable: make(map[string]*common.JobSchedulePlan),
-        jobEventChan: make(chan *common.JobEvent),
+        jobPlanTable:      make(map[string]*common.JobSchedulePlan),
+        jobEventChan:      make(chan *common.JobEvent),
+        jobExecutingTable: make(map[string]*common.JobExecuteInfo),
+        jobResultChan:     make(chan *common.JobExecuteResult),
     }
 
     go G_scheduler.scheduleLoop()
