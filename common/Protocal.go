@@ -51,14 +51,14 @@ type JobExecuteResult struct {
 }
 
 type JobLog struct {
-    JobName      string `json:"job_name"`
-    Command      string `json:"command"`
-    PlanTime     int64  `json:"plan_time"`
-    ScheduleTime int64  `json:"schedule_time"`
-    StartTime    int64  `json:"start_time"`
-    EndTime      int64  `json:"end_time"`
-    Output       string `json:"output"`
-    Err          string `json:"err"`
+    JobName      string `json:"job_name" bson:"job_name"`
+    Command      string `json:"command" bson:"command"`
+    PlanTime     int64  `json:"plan_time" bson:"plan_time"`
+    ScheduleTime int64  `json:"schedule_time" bson:"schedule_time"`
+    StartTime    int64  `json:"start_time" bson:"start_time"`
+    EndTime      int64  `json:"end_time" bson:"end_time"`
+    Output       string `json:"output" bson:"output"`
+    Err          string `json:"err" bson:"err"`
 }
 
 type LogBatch struct {

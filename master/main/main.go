@@ -38,6 +38,10 @@ func main() {
         log.Fatal("初始Etcd错误", err)
     }
 
+    if err = master.InitLogMgr(); err != nil {
+        log.Fatal("初始日志管理器错误", err)
+    }
+
     //初始化http
     if err = master.InitApiServer(); err != nil {
         log.Fatal("初始化Web服务错误", err)

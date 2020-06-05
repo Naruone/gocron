@@ -164,6 +164,35 @@ func jobKillHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func jobLogHandle(w http.ResponseWriter, r *http.Request) {
+    var (
+        err        error
+        name       string
+        skipParam  string // 从第几条开始
+        limitParam string // 返回多少条
+        skip       int
+        limit      int
+        bytes      []byte
+        list       []*common.JobLog
+    )
+    if err = r.ParseForm(); err != nil {
+        if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+            w.Write(bytes)
+        }
+        return
+    }
+    name = r.Form.Get("name")
+    skipParam = r.Form.Get("skip")
+    limitParam = r.Form.Get("limit")
+    if skip, err = strconv.Atoi(skipParam); err != nil {
+        skip = 0
+    }
+    if limit, err = strconv.Atoi(limitParam); err != nil {
+        limit = 5
+    }
+    list = G_logMgr.ListLog(name, int64(skip), int64(limit))
+    if bytes, err = common.BuildResponse(0, "success", list); err == nil {
+        w.Write(bytes)
+    }
 }
 
 func workerListHandle(w http.ResponseWriter, r *http.Request) {
