@@ -2,6 +2,7 @@ package worker
 
 import (
     "gocron/common"
+    "math/rand"
     "os/exec"
     "time"
 )
@@ -33,11 +34,11 @@ func (executor *Executor) ExecuteJob(jobInfo *common.JobExecuteInfo) {
         }
 
         jobLock = G_JobMgr.CreateJobLock(jobInfo.Job.Name)
+        time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
         err = jobLock.TryLock()
         defer jobLock.UnLock()
-
+        result.StartTime = time.Now()
         if err == nil { //上锁成功
-            result.StartTime = time.Now()
             cmd = exec.CommandContext(jobInfo.CancelCtx, "/bin/bash", "-c", jobInfo.Job.Command)
             result.Output, result.Err = cmd.CombinedOutput()
             result.EndTime = time.Now()
