@@ -33,7 +33,6 @@ func (jobLock *JobLock) TryLock() (err error) {
         ctx          context.Context
         cancelFunc   context.CancelFunc
         jobLockKey   string
-        keepRespChan <-chan *clientv3.LeaseKeepAliveResponse
     )
     ctx, cancelFunc = context.WithCancel(context.TODO())
 
@@ -42,26 +41,11 @@ func (jobLock *JobLock) TryLock() (err error) {
     }
     leaseId = leaseGrant.ID
 
-    if keepRespChan, err = jobLock.lease.KeepAlive(ctx, leaseId); err != nil {
+    if _, err = jobLock.lease.KeepAlive(ctx, leaseId); err != nil {
         cancelFunc()                                  // 取消自动续租
         jobLock.lease.Revoke(context.TODO(), leaseId) //  释放租约
         return
     }
-
-    go func() {
-        var (
-            keepAliveResp *clientv3.LeaseKeepAliveResponse
-        )
-        for {
-            select {
-            case keepAliveResp = <-keepRespChan:
-                if keepAliveResp == nil {
-                    goto END
-                }
-            }
-        }
-    END:
-    }()
 
     jobLockKey = common.JOB_LOCK_DIR + jobLock.jobName
     txn = jobLock.kv.Txn(context.TODO())
