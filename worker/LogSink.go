@@ -13,26 +13,53 @@ var (
 )
 
 type LogSink struct {
-    logChan    chan *common.JobLog
-    collection *mongo.Collection
+    logChan        chan *common.JobLog
+    autoCommitChan chan *common.LogBatch
+    collection     *mongo.Collection
 }
 
 func (logSink *LogSink) Append(jobLog *common.JobLog) {
-    logSink.logChan <- jobLog
+    select {
+    case logSink.logChan <- jobLog: //chan 没满就投入
+    default: //否则丢弃日志
+    }
 }
 
-func (logSink *LogSink) saveLog(jobLog *common.JobLog) {
-    logSink.collection.InsertOne(context.TODO(), jobLog)
+func (logSink *LogSink) saveLogs(logBatch *common.LogBatch) {
+    logSink.collection.InsertMany(context.TODO(), logBatch.Logs)
 }
 
 func (logSink *LogSink) writeLoop() {
     var (
-        jobLog *common.JobLog
+        jobLog       *common.JobLog
+        logBatch     *common.LogBatch
+        timeoutBatch *common.LogBatch
+        commitTimer  *time.Timer
     )
     for {
         select {
         case jobLog = <-logSink.logChan:
-            logSink.saveLog(jobLog)
+            if logBatch == nil {
+                logBatch = &common.LogBatch{}
+                commitTimer = time.AfterFunc(time.Duration(G_config.JobLogCommitTimeout)*time.Millisecond,
+                    func(batch *common.LogBatch) func() { //防止在使用logBatch时, 该指针被修改, 所以用参数传入
+                        return func() {
+                            logSink.autoCommitChan <- batch
+                        }
+                    }(logBatch))
+            }
+            logBatch.Logs = append(logBatch.Logs, jobLog)
+            if len(logBatch.Logs) >= G_config.JobLogBatchSize {
+                logSink.saveLogs(logBatch)
+                logBatch = nil
+                commitTimer.Stop()
+            }
+        case timeoutBatch = <-logSink.autoCommitChan:
+            if logBatch != timeoutBatch { //不等说明在timeout 提交前被提交了
+                continue
+            }
+            logSink.saveLogs(timeoutBatch)
+            logBatch = nil
         }
     }
 }
@@ -51,8 +78,9 @@ func InitLogSink() (err error) {
 
     collection = client.Database("cron").Collection("log")
     G_logSink = &LogSink{
-        logChan:    make(chan *common.JobLog, 1000),
-        collection: collection,
+        logChan:        make(chan *common.JobLog, 1000),
+        autoCommitChan: make(chan *common.LogBatch, 1000),
+        collection:     collection,
     }
 
     go G_logSink.writeLoop()

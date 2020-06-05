@@ -61,6 +61,10 @@ type JobLog struct {
     Err          string `json:"err"`
 }
 
+type LogBatch struct {
+    Logs []interface{}
+}
+
 func BuildResponse(code int, msg string, data interface{}) (resp []byte, err error) {
     var response Response
 
