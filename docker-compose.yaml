@@ -1,4 +1,4 @@
-# etcd 集群
+# etcd 集群 & mongodb
 version: '2'
 
 services:
