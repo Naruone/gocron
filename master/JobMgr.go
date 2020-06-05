@@ -131,3 +131,19 @@ func (jobMgr *JobMgr) KillJob(name string) (err error) {
     }
     return
 }
+
+func (jobMgr *JobMgr) ListWorkers() (workerList []string) {
+    var (
+        getResp *clientv3.GetResponse
+        err     error
+    )
+    workerList = make([]string, 0)
+
+    if getResp, err = jobMgr.kv.Get(context.TODO(), common.JOB_WORKER_DIR, clientv3.WithPrefix()); err != nil {
+        return
+    }
+    for _, v := range getResp.Kvs {
+        workerList = append(workerList, common.ExtractWorkerIp(string(v.Key)))
+    }
+    return
+}

@@ -43,6 +43,7 @@ func InitApiServer() (err error) {
     mux.HandleFunc("/job/delete", jobDeleteHandle)
     mux.HandleFunc("/job/kill", jobKillHandle)
     mux.HandleFunc("/job/log", jobLogHandle)
+    mux.HandleFunc("/worker/list", workerListHandle)
 
     httpServer = &http.Server{
         ReadTimeout:  time.Duration(G_config.ApiReadTimeOut) * time.Millisecond,
@@ -163,10 +164,13 @@ func jobKillHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func jobLogHandle(w http.ResponseWriter, r *http.Request) {
+}
+
+func workerListHandle(w http.ResponseWriter, r *http.Request) {
     var (
-        err   error
-        name  string
-        bytes []byte
+        bytes      []byte
+        err        error
+        wokerLists []string
     )
     if err = r.ParseForm(); err != nil {
         if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
@@ -174,14 +178,9 @@ func jobLogHandle(w http.ResponseWriter, r *http.Request) {
         }
         return
     }
-    name = r.PostForm.Get("name")
-    if err = G_JobMgr.KillJob(name); err != nil {
-        if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
-            w.Write(bytes)
-        }
-        return
-    }
-    if bytes, err = common.BuildResponse(0, "success", nil); err == nil {
+
+    wokerLists = G_JobMgr.ListWorkers()
+    if bytes, err = common.BuildResponse(0, "success", wokerLists); err == nil {
         w.Write(bytes)
     }
 }

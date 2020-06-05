@@ -109,3 +109,7 @@ func ExtractJobName(jobKey string) string {
 func ExtractKillJobName(killKey string) string {
     return strings.TrimPrefix(killKey, JOB_KILLER_DIR)
 }
+
+func ExtractWorkerIp(workKey string) string {
+    return strings.TrimPrefix(workKey, JOB_WORKER_DIR)
+}
