@@ -34,7 +34,7 @@ func (executor *Executor) ExecuteJob(jobInfo *common.JobExecuteInfo) {
         }
 
         jobLock = G_JobMgr.CreateJobLock(jobInfo.Job.Name)
-        time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
+        time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)    //防止cpu调度时间导致任务都被一个节点抢占
         err = jobLock.TryLock()
         defer jobLock.UnLock()
         result.StartTime = time.Now()
