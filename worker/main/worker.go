@@ -34,6 +34,10 @@ func main() {
         log.Fatal("初始化配置错误", err)
     }
 
+    if err = worker.InitRegister(); err != nil {
+        log.Fatal("注册worker节点失败", err)
+    }
+
     if err = worker.InitExecutor(); err != nil {
         log.Fatal("初始化执行器错误", err)
     }
