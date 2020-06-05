@@ -38,6 +38,9 @@ func main() {
         log.Fatal("注册worker节点失败", err)
     }
 
+    if err = worker.InitLogSink(); err != nil {
+        log.Fatal("启动日志记录服务", err)
+    }
     if err = worker.InitExecutor(); err != nil {
         log.Fatal("初始化执行器错误", err)
     }

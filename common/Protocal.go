@@ -50,6 +50,17 @@ type JobExecuteResult struct {
     EndTime     time.Time       // 结束时间
 }
 
+type JobLog struct {
+    JobName      string `json:"job_name"`
+    Command      string `json:"command"`
+    PlanTime     int64  `json:"plan_time"`
+    ScheduleTime int64  `json:"schedule_time"`
+    StartTime    int64  `json:"start_time"`
+    EndTime      int64  `json:"end_time"`
+    Output       string `json:"output"`
+    Err          string `json:"err"`
+}
+
 func BuildResponse(code int, msg string, data interface{}) (resp []byte, err error) {
     var response Response
 

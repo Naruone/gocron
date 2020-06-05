@@ -1,7 +1,6 @@
 package worker
 
 import (
-    "fmt"
     "gocron/common"
     "time"
 )
@@ -56,7 +55,6 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
     now = time.Now()
     for _, jobPlan = range scheduler.jobPlanTable {
         if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-            // todo 执行任务
             scheduler.TryStartJob(jobPlan)
             jobPlan.NextTime = jobPlan.Expr.Next(now)
         }
@@ -108,9 +106,25 @@ func (scheduler *Scheduler) jobEventHandle(jobEvent *common.JobEvent) {
 }
 
 func (scheduler *Scheduler) jobResultHandle(result *common.JobExecuteResult) {
+    var (
+        jobLog *common.JobLog
+    )
     delete(scheduler.jobExecutingTable, result.ExecuteInfo.Job.Name)
-    fmt.Println("任务日志", result.ExecuteInfo.Job.Name, string(result.Output), result.Err)
-    //todo 记录执行日志
+    if result.Err != common.ERR_LOCK_ALREADY_REQUIRED { //非抢锁失败错误
+        jobLog = &common.JobLog{
+            JobName:      result.ExecuteInfo.Job.Name,
+            Command:      result.ExecuteInfo.Job.Command,
+            PlanTime:     result.ExecuteInfo.PlanTime.UnixNano() / 1000 / 1000,
+            ScheduleTime: result.ExecuteInfo.RealTime.UnixNano() / 1000 / 1000,
+            StartTime:    result.StartTime.UnixNano() / 1000 / 1000,
+            EndTime:      result.EndTime.UnixNano() / 1000 / 1000,
+            Output:       string(result.Output),
+        }
+        if result.Err != nil {
+            jobLog.Err = result.Err.Error()
+        }
+        G_logSink.Append(jobLog)
+    }
 }
 
 func (scheduler *Scheduler) PushEvent(jobEvent *common.JobEvent) {

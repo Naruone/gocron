@@ -5,6 +5,10 @@
         "127.0.0.1:23792",
         "127.0.0.1:23793"
     ],
-    "etcd 连接超时时间": "毫秒",
-    "dialTimeout": 5000
+    "etcd连接超时时间": "毫秒",
+    "dialTimeout": 5000,
+    "mongodb地址": "采用mongodb URI",
+    "mongodbUri": "mongodb://127.0.0.1:27017",
+    "mongodb连接超时时间": "单位毫秒",
+    "mongodbConnectTimeout": 5000
 }
