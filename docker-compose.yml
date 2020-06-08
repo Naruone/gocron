@@ -39,8 +39,7 @@ services:
         image: mongo:latest
         container_name: mongodb
         volumes:
-            - mongodb-data:/data/db
-            - mongodb-data:/data/configdb
+            - mongodb-data:/data
         ports:
             - 27017:27017
         networks:
