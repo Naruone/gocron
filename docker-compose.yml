@@ -5,7 +5,7 @@ services:
     etcd1:
         image: quay.io/coreos/etcd
         command: etcd -name etcd1 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
-        container_name: etcd-n1
+        container_name: etcd1
         volumes:
             - etcd-data1:/etcd-data
         ports:
@@ -16,7 +16,7 @@ services:
     etcd2:
         image: quay.io/coreos/etcd
         command: etcd -name etcd2 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
-        container_name: etcd-n2
+        container_name: etcd2
         volumes:
             - etcd-data2:/etcd-data
         ports:
@@ -27,7 +27,7 @@ services:
     etcd3:
         image: quay.io/coreos/etcd
         command: etcd -name etcd3 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
-        container_name: etcd-n3
+        container_name: etcd3
         volumes:
             - etcd-data3:/etcd-data
         ports:
@@ -49,7 +49,6 @@ services:
 networks:
     cron-net:
         driver: bridge
-
 
 volumes:
     etcd-data1:
