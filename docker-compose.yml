@@ -1,42 +1,58 @@
 # etcd 集群 & mongodb
-version: '2'
+version: '3'
 
 services:
     etcd1:
         image: quay.io/coreos/etcd
-        container_name: etcd1
         command: etcd -name etcd1 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
+        container_name: etcd-n1
+        volumes:
+            - etcd-data1:/etcd-data
         ports:
             - 23791:2379
-            - 2380
         networks:
-            - byfn
+            - cron-net
 
     etcd2:
         image: quay.io/coreos/etcd
-        container_name: etcd2
         command: etcd -name etcd2 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
+        container_name: etcd-n2
+        volumes:
+            - etcd-data2:/etcd-data
         ports:
             - 23792:2379
-            - 2380
         networks:
-            - byfn
+            - cron-net
 
     etcd3:
         image: quay.io/coreos/etcd
-        container_name: etcd3
         command: etcd -name etcd3 -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" -initial-cluster-state new
+        container_name: etcd-n3
+        volumes:
+            - etcd-data3:/etcd-data
         ports:
             - 23793:2379
-            - 2380
         networks:
-            - byfn
+            - cron-net
 
     mongodb:
         image: mongo:latest
         container_name: mongodb
+        volumes:
+            - mongodb-data:/data/db
+            - mongodb-data:/data/configdb
         ports:
             - 27017:27017
+        networks:
+            - cron-net
 
 networks:
-    byfn:
+    cron-net:
+        driver: bridge
+
+
+volumes:
+    etcd-data1:
+    etcd-data2:
+    etcd-data3:
+    mongodb-data:
