@@ -3,9 +3,9 @@ package master
 import (
     "encoding/json"
     "errors"
-    "fmt"
     "io/ioutil"
     "os"
+    "strings"
 )
 
 type Config struct {
@@ -28,6 +28,7 @@ func InitConfig(filename string) (err error) {
         content   []byte
         config    Config
         envConfig = make([]string, 0)
+        mainPath  string
     )
     if content, err = ioutil.ReadFile(filename); err != nil {
         return
@@ -53,7 +54,10 @@ func InitConfig(filename string) (err error) {
         err = errors.New("mongodb 配置错误, 请配置 MONGODB")
         return
     }
-    fmt.Println(config)
+    if mainPath, err = os.Getwd(); err != nil {
+        return
+    }
+    config.WebRoot = mainPath + strings.TrimLeft(config.WebRoot, ".")
     config.EtcdEndPoints = envConfig
     G_config = &config
     return
