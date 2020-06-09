@@ -47,7 +47,7 @@ func InitConfig(filename string) (err error) {
         err = errors.New("etcd 配置错误, 请至少配置ETCD_N1, ETCD_N2, ETCD_N3 其中一个")
         return
     }
-    if mongoConf := os.Getenv(""); mongoConf != "" {
+    if mongoConf := os.Getenv("MONGODB"); mongoConf != "" {
         config.MongodbUri = "mongodb://" + mongoConf
     } else {
         err = errors.New("mongodb 配置错误, 请配置 MONGODB")
