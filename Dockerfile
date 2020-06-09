@@ -1,14 +1,14 @@
 #test1
-FROM golang:1.2 AS builder
+FROM alpine:latest AS builder
+RUN apk update
+RUN apk upgrade
+RUN apk add --update go
+ENV GOPATH /app
+ADD . $GOPATH/src/gocron
+WORKDIR $GOPATH/src/gocron/master/main/
+RUN CGO_ENABLED=1 GOOS=linux go build -o main
 
-ADD ./ /app
-
-WORKDIR /app
-
-RUN GOOS=linux GOARCH=amd64 go build -o master/main/main master/main/main.go
-
-
-FROM alpine:3
-COPY --from=builder /app/master/main/main /app/
-CMD ["/app/main", ""]
+FROM alpine:latest
+COPY --from=builder /go/src/gocron/master/main /app/
+CMD ["/app/main", "--config=/app/config.json"]
 EXPOSE 8070
