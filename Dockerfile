@@ -6,7 +6,7 @@ RUN apk add --update go
 ENV GOPATH /app
 ADD . $GOPATH/src/gocron
 WORKDIR $GOPATH/src/gocron/master/main/
-RUN CGO_ENABLED=1 GOOS=linux go build -o main
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main
 
 FROM alpine:latest
 COPY --from=builder /go/src/gocron/master/main /app/
