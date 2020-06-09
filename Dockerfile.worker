@@ -1,0 +1,10 @@
+#test1
+FROM golang:alpine3.12 AS builder
+ADD . $GOPATH/src/gocron
+ENV GOPROXY="https://goproxy.cn,direct"
+WORKDIR $GOPATH/src/gocron/worker/main/
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o worker
+
+FROM centos
+COPY --from=builder /go/src/gocron/worker/main /app/
+CMD ["/app/worker", "--config=/app/config.json"]
