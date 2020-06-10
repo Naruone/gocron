@@ -1,11 +1,10 @@
-#test1
 FROM golang:alpine3.12 AS builder
-ADD . $GOPATH/src/gocron
 ENV GOPROXY="https://goproxy.cn,direct"
-WORKDIR $GOPATH/src/gocron/master/main/
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o master
+ADD . $GOPATH/gocron
+RUN cd $GOPATH/gocron/master/main/ && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o master && rm -rf main.go
 
 FROM centos
-COPY --from=builder /go/src/gocron/master/main /app/
+COPY --from=builder /go/gocron/master/main /app/
 CMD ["/app/master", "--config=/app/config.json"]
 EXPOSE 8070
