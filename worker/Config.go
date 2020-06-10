@@ -49,6 +49,7 @@ func InitConfig(filename string) (err error) {
         err = errors.New("mongodb 配置错误, 请配置 MONGODB")
         return
     }
+    config.EtcdEndPoints = envConfig
     G_config = &config
     return
 }
