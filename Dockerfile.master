@@ -6,5 +6,6 @@ RUN cd $GOPATH/gocron/master/main/ && \
 
 FROM centos
 COPY --from=builder /go/gocron/master/main /app/
-CMD ["/app/master", "--config=/app/config.json"]
+RUN cd /app
+CMD ["./master", "--config=./config.json"]
 EXPOSE 8070
